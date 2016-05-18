@@ -1,0 +1,468 @@
+              
+            SIMCITY 2000 FILE FORMAT (MS-DOS VERSION)             9-XII-1995
+
+DISCLAIMER: The information in this file does not originate from Maxis,
+any employee of Maxis, or any signatory of a non-disclosure agreement with 
+Maxis, and neither I nor (I presume) Maxis make any claims as to its accuracy 
+or usability for any purpose.
+
+
+
+First of all, SimCity files are in `IFF format', which means that
+they consist of an 12-byte file header followed by a series of segments.
+The file header format is as follows:
+
+Bytes 1-4:  'FORM' (indicates an IFF file)
+Bytes 5-8:  Total count of bytes in file, except for the first 8 bytes
+            in this header
+Bytes 9-12: File type: in the case of SimCity 2000, 'SCDH'
+
+Each segment has an 8-byte header:
+
+Bytes 1-4: Type of segment
+Byres 5-8: Number of bytes in this segment, except for this 8-byte header
+
+The remaining bytes in each segment are data.
+
+The data in most SimCity segments is compressed using a form of run-length 
+encoding.  When this is done, the data in the segment consists of a series
+of chunks of two kinds.  The first kind of chunk has first byte from 1 to
+127;  in this case the first byte is a count telling how many data bytes
+follow.  The second kind of chunk has first byte from 129 to 255.  In this
+case, if you subtract 127 from the first byte, you get a count telling how
+many times the following single data byte is repeated.  Chunks with first 
+byte 0 or 128 never seem to occur.
+
+SimCity files consist of the following segment types, in order, with the
+following lengths.  Except as noted, segments are compressed as above, and 
+the length given for them is the length after uncompression; the compressed
+length may vary.
+
+Segment type     Length
+
+MISC              4800    
+ALTM             32768  (uncompressed)
+XTER             16384    
+XBLD             16384    
+XZON             16384    
+XUND             16384    
+XTXT             16384    
+XLAB              6400    
+XMIC              1200    
+XTHG               480    
+XBIT             16384    
+XTRF              4096    
+XPLT              4096    
+XVAL              4096    
+XCRM              4096    
+XPLC              1024    
+XFIR              1024    
+XPOP              1024    
+XROG              1024    
+XGRP              3328    
+CNAM                32  (uncompressed; optional?)
+
+Some remarks about the data in the individual segments:
+
+ALTM:  Altitude map.  Uncompressed.  Contains two bytes for each square.
+       (For our purposes, we will define `left', `right', `top', and `bottom'
+       by saying that squares are scanned by rows from top to bottom, and 
+       from right to left within each row.)
+       Taking each two bytes as a 16-bit integer, MSB first, bits 4-0
+       give the altitude of the square, from 50 to 3150 feet.  Bit 7 seems
+       to be set if the square is covered with water.  I do not know what
+       bits 15-8 and 6-5 do.
+
+CNAM:  City name.  Uncompressed.  Seems to be optional.  When it is present,
+       it consists of a length byte from 0 to 31, followed by that many
+       bytes of city name.  It is padded out to 32 bytes with zeroes.
+
+XBIT:  One byte of flags per square.
+
+Bit 7: Electrically conductive?
+    6: Powered?
+    5: Piped? (i.e., permeable to water?)
+    4: Supplied with water?
+    3: ???
+    2: Covered with water? (i.e., part of a lake, river, or ocean?)
+    1: ???
+    0: Does placing water here give salt water?
+
+XBLD:  One code byte per square, describing what's on it.  (In general, 
+       to put a building or whatever up and have a consistent 
+       resultant simulation, you have to do a lot more than change 
+       this array.)
+
+The codes in this list are in hexadecimal.
+
+Non-buildings:
+
+00: Clear terrain (empty)
+01-04: Rubble
+05: Radioactive waste
+06-0C: Trees (density increases as code increases)
+0D: Small park (set XZON as for a 1x1 building)
+0E-1C: Power lines (various directions, slopes)
+   The difference X between the code and 0E, the first code, tells 
+   what direction(s) and slope the power line takes.
+   X (in hex)  Direction
+   0           Left-right [for definition of directions, see note with ALTM]
+   1           Top-bottom
+   2           Top-bottom; slopes upwards towards top
+   3           Left-right; slopes upwards towards right 
+   4           Top-bottom; slopes upwards towards bottom
+   5           Left-right; slopes upwards towards left
+   6           From bottom side to right side
+   7           Bottom to left
+   8           Left to top
+   9           Top to right
+   A           T junction between top, right and bottom
+   B           T between left, bottom and right
+   C           T between top, left and bottom
+   D           T between top, left and right
+   E           Intersection connecting top, left, bottom, and right
+1D-2B: Roads (various directions, slopes; same coding as for 0E-1C)
+2C-3A: Rails (various directions, slopes; same coding as for 0E-1C)
+3B-3E: More sloping rails.  These are used as preparation before ascending.
+The 2C-3A rail codes are used on the actual sloping square.  This is why
+rails don't look right when ascending a 1:1 grade.
+  3B: Top-bottom; slopes upwards towards top
+  3C: Left-right; slopes upwards towards right
+  3D: Top-bottom; slopes upwards towards bottom
+  3E: Left-right; slopes upwards towards left
+3F-42: Tunnel entrances
+  3F: Tunnel to the top
+  40: Tunnel to the right
+  41: Tunnel to the bottom
+  42: Tunnel to the left
+43-44: Crossovers (roads/power lines)
+  43: Road left-right, power top-bottom
+  44: Road top-bottom, power left-right
+45-46: Crossovers (roads/rails)
+  45: Road left-right, rails top-bottom
+  46: Road top-bottom, rails left-right
+47-48: Crossovers (rails/power lines)
+  47: Rails left-right, power lines top-bottom
+  48: Rails top-bottom, power lines left-right
+49-4A: Highways (set XZON as for a 1x1 building)
+  49: Highway left-right
+  4A: Highway top-bottom
+4B-4C: Crossovers (roads/highways; set XZON as for a 1x1 building)
+  4B: Highway left-right, road top-bottom
+  4C: Highway top-bottom, road left-right
+4D-4E: Crossovers (rails/highways; set XZON as for a 1x1 building)
+  4D: Highway left-right, rails top-bottom
+  4E: Highway top-bottom, rails left-right
+4F-50: Crossovers (highways/power lines; set XZON as for a 1x1 building)
+  4F: Highway left-right, power lines top-bottom
+  50: Highway top-bottom, power lines left-right
+51-55: Suspension bridge pieces
+56-59: Other road bridge pieces
+5A-5B: Rail bridge pieces
+5C: Elevated power lines
+5D-60: Highway entrances (on-ramps)
+  5D: Highway at top, road at left OR highway at right, road at bottom
+  5E: H right, R top OR H top, R right
+  5F: R right, H bottom OR H left, R top
+  60: R left, H bottom OR H left, R bottom
+61-69: Highways (various directions, slopes; 2x2 tiles; XZON should be set
+                 as for a 2x2 building)
+  61: Highway top-bottom, slopes up to the top
+  62: Highway left-right, slopes up to the right
+  63: Highway top-bottom, slopes up to the bottom
+  64: Highway left-right, slopes up to the left
+  65: Highway joining the bottom to the right
+  66: Highway joining the bottom to the left
+  67: Highway joining the left to the top
+  68: Highway joining the top to the right
+  69: Cloverleaf intersection connecting top, left, bottom and right
+6A-6B: Highway bridges (2x2 tiles; set XZON as for a 2x2 building.)  This 
+       is a reinforced bridge.  Use 49/4A for the `Hiway' bridge.
+6C-6F: Sub/rail connections (set XZON as for a 1x1 building)
+  6C: Sub/rail connection, rail at bottom
+  6D: Sub/rail connection, rail at left
+  6E: Sub/rail connection, rail at top
+  6F: Sub/rail connection, rail at right
+
+Buildings:
+
+  Residential, 1x1:
+    70-73: Lower-class homes
+    74-77: Middle-class homes
+    78-7B: Luxury homes
+  Commercial, 1x1:
+    7C: Gas station
+    7D: Bed & breakfast inn
+    7E: Convenience store
+    7F: Gas station
+    80: Small office building
+    81: Office building
+    82: Warehouse
+    83: Cassidy's Toy Store
+  Industrial, 1x1:
+    84: Warehouse
+    85: Chemical storage
+    86: Warehouse
+    87: Industrial substation
+  Miscellaneous, 1x1:
+    88-89: Construction
+    8A-8B: Abandoned building
+  Residential, 2x2:
+    8C: Cheap apartments
+    8D-8E: Apartments
+    8F-90: Nice apartments
+    91-93: Condominium
+  Commercial, 2x2:
+    94: Shopping center
+    95: Grocery store
+    96: Office building
+    97: Resort hotel
+    98: Office building
+    99: Office / Retail
+    9A-9D: Office building
+  Industrial, 2x2:
+    9E: Warehouse
+    9F: Chemical processing
+    A0-A5: Factory
+  Miscellaneous, 2x2:
+    A6-A9: Construction
+    AA-AD: Abandoned building
+  Residential, 3x3:
+    AE-AF: Large apartment building
+    B0-B1: Condominium
+  Commercial, 3x3:
+    B2: Office park
+    B3: Office tower
+    B4: Mini-mall
+    B5: Theater square
+    B6: Drive-in theater
+    B7-B8: Office tower
+    B9: Parking lot
+    BA: Historic office building
+    BB: Corporate headquarters
+  Industrial, 3x3:
+    BC: Chemical processing
+    BD: Large factory
+    BE: Industrial thingamajig
+    BF: Factory
+    C0: Large warehouse
+    C1: Warehouse
+  Miscellaneous, 3x3:
+    C2-C3: Construction
+    C4-C5: Abandoned building
+  Power plants:
+    C6-C7: Hydroelectric power (1x1)
+    C8: Wind power (1x1)
+    C9: Natural gas power plant (4x4)
+    CA: Oil power plant (4x4)
+    CB: Nuclear power plant (4x4)
+    CC: Solar power plant (4x4)
+    CD: Microwave power receiver (4x4)
+    CE: Fusion power plant (4x4)
+    CF: Coal power plant (4x4)
+  City services:
+    D0: City hall
+    D1: Hospital
+    D2: Police station
+    D3: Fire station
+    D4: Museum
+    D5: Park (big)
+    D6: School
+    D7: Stadium
+    D8: Prison
+    D9: College
+    DA: Zoo
+    DB: Statue
+  Seaports, airports, transportation, military bases, and more city services:
+    DC: Water pump
+    DD-DE: Runway
+    DF: Pier
+    E0: Crane
+    E1-E2: Control tower
+    E3: Warehouse (for seaport)
+    E4-E5: Building (for airport)
+    E6: Tarmac
+    E7: F-15b
+    E8: Hangar
+    E9: Subway station
+    EA: Radar
+    EB: Water tower
+    EC: Bus station
+    ED: Rail station
+    EE-EF: Parking lot
+    F0: Loading bay
+    F1: Top secret
+    F2: Cargo yard
+    F3: man (aka the mayor's house)
+    F4: Water treatment plant
+    F5: Library
+    F6: Hangar
+    F7: Church
+    F8: Marina
+    F9: Missile silo
+    FA: Desalination plant
+  Arcologies:
+    FB: Plymouth arcology
+    FC: Forest arcology
+    FD: Darco arcology
+    FE: Launch arcology
+  Braun Llama-dome:
+    FF: Braun Llama-dome
+
+XTER:  One code byte per square.  Tells whether there is land or water in
+       the square and how the terrain slopes.  To describe here how
+       terrain slopes, we write four numbers in a square:
+
+       a b
+       c d
+
+       Here, a, b, c and d are the relative heights of the corners of
+       the square.
+               
+       Codes in hex:
+
+       00-0D:  Dry land, with various slopes:
+         00: 00    01: 11    02: 01    03: 00    04: 10    05: 11
+             00        00        01        11        10        01
+         06: 01    07: 10    08: 11    09: 01    0A: 00    0B: 00
+             11        11        10        00        01        10
+         0C: 10    0D: 11
+             00        11
+       0E-0F:  Unused?
+       10-1D:  Slopes as for 00-0D.  However, instead of being dry land,
+               the square is totally submerged in water.
+       1E-1F:  Unused?
+       20-2D:  As for 10-1D, but the square is submerged only to a level
+               slightly less than height 1, so that for e.g. square type 21
+               the square to the top would probably be dry land.
+       2E:     Unused?
+       2F:     Unused?
+       30-3D:  As for 20-2D, but the square is not submerged at all; 
+               it just has water on its surface, as when you place it by 
+               the `water' tool in SimCity 2000.  It is still true that
+               for e.g. square type 31, the square to the top would be
+               dry land and the other adjacent squares water.
+       3E: Waterfall.
+       3F: Unused?
+       40: Surf. water `canal', running left-right.  Land at top and bottom.
+       41: Surf. water `canal', running top-bottom.  Land at left and right.
+       42: Surf. water `bay', open to the bottom.  Land at left, top & right.
+       43: Surf. water `bay', open to the left.  Land at top, right & bottom.
+       44: Surf. water `bay', open to the top.  Land at left, right & bottom.
+       45: Surf. water `bay', open to the bottom.  Land at top, left & right.
+       46-FF: Unused?
+
+XUND:  One code byte per square.  Tells what's in the square under the
+       ground.
+
+Codes in hex:
+
+00: Nothing
+01-0F: Subway, various directions & slopes (coded as for XTER, codes 0E-1C) 
+10-1E: Pipes, various directions & slopes (coded as for XTER, codes 0E-1C)
+1F: Pipe/subway crossover: pipe top-bottom, subway left-right
+20: Pipe/subway crossover: pipe left-right, subway top-bottom
+21-22: ???
+23: Sub/rail or subway station
+24-FF: Unused?
+
+XZON:  One byte per square.  Bits 7, 6, 5, and 4 should be set at the
+       upper left, lower left, lower right, and upper right corners of a 
+       building.  For a 1x1 building, of course, all these bits should be set 
+       at the location of the building.  Bits 3-0 code the zoning for the 
+       square, as follows:
+
+0: None
+1: Light residential
+2: Dense residential
+3: Light commercial
+4: Dense commercial
+5: Light industrial
+6: Dense industrial
+7: Military base
+8: Airport
+9: Seaport
+10-15: Unused?
+
+XTXT:  One byte per square.  It gives the number of the user-defined sign 
+       attached there, or the label used for a microsimulator/city-wide 
+       simulator pertaining to that square, as follows:
+
+Codes in hex:
+
+00: No sign
+01-32: User-attached signs (up to 50, decimal, of them)
+33: ??? microsimulator
+34: Bus system microsimulator
+35: Rail system microsimulator
+36: Sub system microsimulator
+37: Wind power microsimulator
+38: Hydro power microsimulator
+39: Park system microsimulator
+3A: Museum system microsimulator
+3B: Library system microsimulator
+3C: Marina system microsimulator
+3D-C8: Other microsimulators (up to 140 of them here)
+(FOR: Police stations, fire stations, schools, zoos, stadiums, hospitals, 
+      prisons, colleges, power plants, water treatment plants, 
+      desalination plants, the mayor's house, and city hall)
+
+FA: Connection-to-neighbor-city sign
+FB: Football team name (default `Llamas')
+FC: Baseball team name (default `Alpacas')
+FD: Soccer team name (default `Camels')
+FE: Cricket team name (default `Dromedaries')
+FF: Rugby team name (default `Army ants')
+
+XLAB:  256 labels, taking up 25 bytes each.  The label indices are as in XBIT.
+       Label 00 is the mayor's name.  Labels consist of a 1-byte count followed
+       by the appropriate number of bytes of string, padded with 00's to 24
+       bytes in length.
+
+XMIC:  150 8-byte records, one for each microsimulator.  The first byte
+       of each microsimulator record is the tile type it applies to.  The
+       first ten microsimulators correspond to the city-wide microsimulators
+       (labels 33-3C.)  The next 140 correspond to individual structure
+       microsimulators (labels 3D-C8.)
+
+XTHG:  Unknown contents.  480 bytes long.
+
+XGRP:  Unknown contents.  3328 = 32*104 bytes long.
+
+MISC:  Miscellaneous statistics.  1200 4-byte integers, which we call here #0
+       through #1199.  These integers are stored big-endian, i.e., most
+       significant byte first, least significant byte last.  The contents of
+       a few of these integers:
+
+#3: Year of founding of the city.
+
+#4: Number of days that have elapsed since the founding.  (In SimNation,
+    all months have 25 days.)
+
+#5: Money supply
+      (This is the location modified by the hex-edit cheat described in
+      SIMCITY 2000: POWER, POLITICS, AND PLANNING.  Now you know how it
+      works!)
+
+#20: SimNation population (in 1,000s)
+
+#124-#379: Number of squares with a given tile (i.e., XBLD) type (from 00 to 
+           FF)
+
+#439: Neighbor city 1 population
+#443: Neighbor city 2 population
+#447: Neighbor city 3 population
+#451: Neighbor city 4 population
+
+The following appear to be statistical maps of the city:
+
+XPLC:  Police power
+XFIR:  Fire power
+XPOP:  Population (?)
+XROG:  Rate of growth of population (?)
+XPLT:  Pollution (?)
+XVAL:  Property values (?)
+XCRM:  Crime rate
+XTRF:  Traffic (?)
+-- 
+David Moews                                 dmoews@xraysgi.ims.uconn.edu
