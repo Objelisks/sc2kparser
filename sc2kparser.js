@@ -97,14 +97,13 @@ module.exports.segmentHandlers = {
   'ALTM': (data, struct) => {
     // NOTE: documentation is weak on this segment
     // TODO: convert typed array views to DataView objects
-    let view = new Uint16Array(data.buffer, data.byteOffset, data.byteLength);
-    let view2 = new Uint8Array(data);
-    console.log(view.length, view2.length);
-    view.forEach((square, i) => {
+    let view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+    for(let i=0; i<data.byteLength/2; i++) {
+      let square = view.getUint16(i*2);
       let altitude = (square & 0x001F) * 50;
       struct.tiles[i].alt = altitude;
       struct.tiles[i].water = (square & 0x0080) !== 0;
-    });
+    }
   },
   'CNAM': (data, struct) => {
     let view = new Uint8Array(data);

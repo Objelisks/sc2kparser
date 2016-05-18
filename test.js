@@ -25,9 +25,9 @@ assert(JSON.stringify(segments) === JSON.stringify(expected), JSON.stringify(seg
 
 var struct = {tiles:[{}, {}, {}]};
 var handler = parser.segmentHandlers.ALTM;
-var segment = Uint16Array.from([0x0080, 0x0008]);
+var segment = Uint8Array.from([0x00, 0x81, 0x00, 0x08]);
 handler(segment, struct);
-assert(struct.tiles[0].alt === 0, 'altm 1a');
+assert(struct.tiles[0].alt === 50, 'altm 1a');
 assert(struct.tiles[0].water, 'altm 1b');
 assert(struct.tiles[1].alt === 400, 'altm 2a');
 assert(!struct.tiles[1].water, 'altm 2b');
