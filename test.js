@@ -1,31 +1,25 @@
 "use strict"
-var parser = require('./sc2kparser.js');
+let mocha = require('mocha');
+let assert = require('chai').assert;
+let parser = require('./sc2kparser.js');
 
-var assert = function(bool) {
-  if(!bool) {
-    console.error(arguments);
-  } else {
-    console.log('test passed');
-  }
-}
-
-var compressedSegment = Uint8Array.from([2, 34, 55, 130, 255]);
-var decompressed = parser.decompressSegment(compressedSegment);
-var expected = [34, 55, 255, 255, 255];
+let compressedSegment = Uint8Array.from([2, 34, 55, 130, 255]);
+let decompressed = parser.decompressSegment(compressedSegment);
+let expected = [34, 55, 255, 255, 255];
 assert(decompressed.toString() === expected.toString(), decompressed, expected);
 
 //         title        length   data
-var arr = [65,66,67,68, 0,0,0,4, 3,1,2,3];
-var fileBytes = Uint8Array.from(arr);
-var segments = parser.splitIntoSegments(fileBytes);
-var expected = {
+let arr = [65,66,67,68, 0,0,0,4, 3,1,2,3];
+let fileBytes = Uint8Array.from(arr);
+let segments = parser.splitIntoSegments(fileBytes);
+let expected = {
   "ABCD": Uint8Array.from([1, 2, 3])
 };
 assert(JSON.stringify(segments) === JSON.stringify(expected), JSON.stringify(segments), JSON.stringify(expected));
 
-var struct = {tiles:[{}, {}, {}]};
-var handler = parser.segmentHandlers.ALTM;
-var segment = Uint8Array.from([0x00, 0x81, 0x00, 0x08]);
+let struct = {tiles:[{}, {}, {}]};
+let handler = parser.segmentHandlers.ALTM;
+let segment = Uint8Array.from([0x00, 0x81, 0x00, 0x08]);
 handler(segment, struct);
 assert(struct.tiles[0].alt === 50, 'altm 1a');
 assert(struct.tiles[0].water, 'altm 1b');

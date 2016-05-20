@@ -1,4 +1,6 @@
 "use strict"
+let buildingNames = require('buildingNames.json');
+
 /*
 The data in most SimCity segments is compressed using a form of run-length
 encoding.  When this is done, the data in the segment consists of a series
@@ -60,6 +62,13 @@ module.exports.splitIntoSegments = function(rest) {
   return segments;
 };
 
+// slopes define the relative heights of corners from left to right
+// i.e.: [0,0,1,1] =>
+// 0   0   top
+//
+// 1   1   bottom
+// which is a slope where the top side is at this tile's altitude, and the bottom
+// side is at the next altitude level
 let xterSlopeMap = {
   0x0: [0,0,0,0],
   0x1: [1,1,0,0],
@@ -79,24 +88,24 @@ let xterSlopeMap = {
 
 // NOTE: surf. water documetation inconsistency
 // denotes which sides have land
+//     0
+//   .___.
+// 1 |   | 2
+//   |___|
+//     3
 let xterWaterMap = {
-  0x0: [0,2], // left-right open canal
-  0x1: [1,3], // top-bottom open canal
-  0x2: [0,2,3], // right open bay
-  0x3: [0,1,2], // left open bay
-  0x4: [1,2,3], // top open bay
-  0x5: [0,1,3]  // bottom open bay
-};
-
-// TODO: fill out building names
-let buildingNames = {
-
+  0x0: [1,0,0,1], // left-right open canal
+  0x1: [0,1,1,0], // top-bottom open canal
+  0x2: [1,1,0,1], // right open bay
+  0x3: [1,0,1,1], // left open bay
+  0x4: [0,1,1,1], // top open bay
+  0x5: [1,1,1,0]  // bottom open bay
 };
 
 module.exports.segmentHandlers = {
   'ALTM': (data, struct) => {
     // NOTE: documentation is weak on this segment
-    // TODO: convert typed array views to DataView objects
+    // NOTE: uses DataView instead of typed array, because we need non-aligned access to 16bit ints
     let view = new DataView(data.buffer, data.byteOffset, data.byteLength);
     for(let i=0; i<data.byteLength/2; i++) {
       let square = view.getUint16(i*2);
@@ -207,11 +216,11 @@ module.exports.segmentHandlers = {
     }
   },
   'MISC': (data, struct) => {
-    let view = new Uint32Array(data);
-    struct.founded = view[3];
-    struct.daysElapsed = view[4];
-    struct.money = view[5];
-    struct.population = view[20];
+    let view = new DataView(data, data.byteOffset, data.byteLength);
+    struct.founded = view.getUint32(3*4);
+    struct.daysElapsed = view.getUint32(4*4);
+    struct.money = view.getUint32(5*4);
+    struct.population = view.getUint32(20*4);
     // TODO: classify rest of misc data
   }
   // TODO: XMIC, XTHG, XGRP, XPLC, XFIR, XPOP, XROG, XPLT, XVAL, XCRM, XTRF

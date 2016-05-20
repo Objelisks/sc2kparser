@@ -1,15 +1,32 @@
 {
   "name": "sc2kparser",
   "version": "1.0.0",
-  "description": "",
+  "description": "SimCity 2000 save file parser",
   "main": "sc2kparser.js",
   "scripts": {
     "test": "node test.js"
   },
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Objelisks/sc2kparser.git"
+  },
+  "keywords": [
+    "sim",
+    "city",
+    "simcity",
+    "2000",
+    "save",
+    "file",
+    "parser"
+  ],
+  "author": "objelisks",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Objelisks/sc2kparser/issues"
+  },
+  "homepage": "https://github.com/Objelisks/sc2kparser#readme",
   "devDependencies": {
-    "babel-preset-es2015": "^6.9.0",
-    "babelify": "^7.3.0"
+    "chai": "^3.5.0",
+    "mocha": "^2.4.5"
   }
 }

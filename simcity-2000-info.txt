@@ -36,7 +36,7 @@ byte 0 or 128 never seem to occur.
 SimCity files consist of the following segment types, in order, with the
 following lengths.  Except as noted, segments are compressed as above, and 
 the length given for them is the length after uncompression; the compressed
-length may vary.
+length may lety.
 
 Segment type     Length
 
@@ -102,7 +102,7 @@ Non-buildings:
 05: Radioactive waste
 06-0C: Trees (density increases as code increases)
 0D: Small park (set XZON as for a 1x1 building)
-0E-1C: Power lines (various directions, slopes)
+0E-1C: Power lines (letious directions, slopes)
    The difference X between the code and 0E, the first code, tells 
    what direction(s) and slope the power line takes.
    X (in hex)  Direction
@@ -121,8 +121,8 @@ Non-buildings:
    C           T between top, left and bottom
    D           T between top, left and right
    E           Intersection connecting top, left, bottom, and right
-1D-2B: Roads (various directions, slopes; same coding as for 0E-1C)
-2C-3A: Rails (various directions, slopes; same coding as for 0E-1C)
+1D-2B: Roads (letious directions, slopes; same coding as for 0E-1C)
+2C-3A: Rails (letious directions, slopes; same coding as for 0E-1C)
 3B-3E: More sloping rails.  These are used as preparation before ascending.
 The 2C-3A rail codes are used on the actual sloping square.  This is why
 rails don't look right when ascending a 1:1 grade.
@@ -165,7 +165,7 @@ rails don't look right when ascending a 1:1 grade.
   5E: H right, R top OR H top, R right
   5F: R right, H bottom OR H left, R top
   60: R left, H bottom OR H left, R bottom
-61-69: Highways (various directions, slopes; 2x2 tiles; XZON should be set
+61-69: Highways (letious directions, slopes; 2x2 tiles; XZON should be set
                  as for a 2x2 building)
   61: Highway top-bottom, slopes up to the top
   62: Highway left-right, slopes up to the right
@@ -321,7 +321,7 @@ XTER:  One code byte per square.  Tells whether there is land or water in
                
        Codes in hex:
 
-       00-0D:  Dry land, with various slopes:
+       00-0D:  Dry land, with letious slopes:
          00: 00    01: 11    02: 01    03: 00    04: 10    05: 11
              00        00        01        11        10        01
          06: 01    07: 10    08: 11    09: 01    0A: 00    0B: 00
@@ -358,8 +358,8 @@ XUND:  One code byte per square.  Tells what's in the square under the
 Codes in hex:
 
 00: Nothing
-01-0F: Subway, various directions & slopes (coded as for XTER, codes 0E-1C) 
-10-1E: Pipes, various directions & slopes (coded as for XTER, codes 0E-1C)
+01-0F: Subway, letious directions & slopes (coded as for XTER, codes 0E-1C) 
+10-1E: Pipes, letious directions & slopes (coded as for XTER, codes 0E-1C)
 1F: Pipe/subway crossover: pipe top-bottom, subway left-right
 20: Pipe/subway crossover: pipe left-right, subway top-bottom
 21-22: ???
