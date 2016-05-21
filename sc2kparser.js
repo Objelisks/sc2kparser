@@ -1,4 +1,7 @@
+(function() {
 "use strict"
+
+let sc2kparser = {};
 let buildingNames = require('buildingNames.json');
 
 /*
@@ -11,7 +14,7 @@ case, if you subtract 127 from the first byte, you get a count telling how
 many times the following single data byte is repeated.  Chunks with first
 byte 0 or 128 never seem to occur.
 */
-module.exports.decompressSegment = function(bytes) {
+sc2kparser.decompressSegment = function(bytes) {
   let output = [];
   let dataCount = 0;
 
@@ -46,7 +49,7 @@ let alreadyDecompressedSegments = {
 };
 
 // split segments into a hash indexed by segment title
-module.exports.splitIntoSegments = function(rest) {
+sc2kparser.splitIntoSegments = function(rest) {
   let segments = {};
   while(rest.length > 0) {
     let segmentTitle = Array.prototype.map.call(rest.subarray(0, 4), x => String.fromCharCode(x)).join('');
@@ -54,7 +57,7 @@ module.exports.splitIntoSegments = function(rest) {
     let segmentLength = new DataView(lengthBytes.buffer).getUint32(lengthBytes.byteOffset);
     let segmentContent = rest.subarray(8, 8+segmentLength);
     if(!alreadyDecompressedSegments[segmentTitle]) {
-      segmentContent = module.exports.decompressSegment(segmentContent);
+      segmentContent = sc2kparser.decompressSegment(segmentContent);
     }
     segments[segmentTitle] = segmentContent;
     rest = rest.subarray(8+segmentLength);
@@ -102,7 +105,7 @@ let xterWaterMap = {
   0x5: [1,1,1,0]  // bottom open bay
 };
 
-module.exports.segmentHandlers = {
+sc2kparser.segmentHandlers = {
   'ALTM': (data, struct) => {
     // NOTE: documentation is weak on this segment
     // NOTE: uses DataView instead of typed array, because we need non-aligned access to 16bit ints
@@ -227,7 +230,7 @@ module.exports.segmentHandlers = {
 };
 
 // decompress and interpret bytes into a combined tiles format
-module.exports.toVerboseFormat = function(segments) {
+sc2kparser.toVerboseFormat = function(segments) {
   let struct = {};
   struct.tiles = [];
   for(let i=0; i<128*128; i++) {
@@ -236,7 +239,7 @@ module.exports.toVerboseFormat = function(segments) {
 
   Object.keys(segments).forEach((segmentTitle) => {
     let data = segments[segmentTitle];
-    let handler = module.exports.segmentHandlers[segmentTitle];
+    let handler = sc2kparser.segmentHandlers[segmentTitle];
     if(handler) {
       handler(data, struct);
     }
@@ -245,17 +248,17 @@ module.exports.toVerboseFormat = function(segments) {
 };
 
 // bytes -> file segments decompressed
-module.exports.parse = function(bytes, options) {
+sc2kparser.parse = function(bytes, options) {
   let buffer = new Uint8Array(bytes);
   let fileHeader = buffer.subarray(0, 12);
   let rest = buffer.subarray(12);
-  let segments = module.exports.splitIntoSegments(rest);
-  let struct = module.exports.toVerboseFormat(segments);
+  let segments = sc2kparser.splitIntoSegments(rest);
+  let struct = sc2kparser.toVerboseFormat(segments);
   return struct;
 };
 
 // check header bytes
-module.exports.isSimCity2000SaveFile = function(bytes) {
+sc2kparser.isSimCity2000SaveFile = function(bytes) {
   // check IFF header
   if(bytes[0] !== 0x46 ||
      bytes[1] !== 0x4F ||
@@ -274,3 +277,11 @@ module.exports.isSimCity2000SaveFile = function(bytes) {
 
   return true;
 }
+
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+  module.exports = sc2kparser;
+} else {
+  window.sc2kparser = sc2kparser;
+}
+
+})();
