@@ -2,7 +2,7 @@
 "use strict"
 
 let sc2kparser = {};
-let buildingNames = require('buildingNames.json');
+let buildingNames = require('./buildingNames.json');
 
 /*
 The data in most SimCity segments is compressed using a form of run-length
@@ -105,6 +105,14 @@ let xterWaterMap = {
   0x5: [1,1,1,0]  // bottom open bay
 };
 
+let waterLevels = {
+  0x0: "dry",
+  0x1: "submerged",
+  0x2: "shore",
+  0x3: "surface",
+  0x4: "waterfall"
+};
+
 sc2kparser.segmentHandlers = {
   'ALTM': (data, struct) => {
     // NOTE: documentation is weak on this segment
@@ -141,7 +149,7 @@ sc2kparser.segmentHandlers = {
     let view = new Uint8Array(data);
     view.forEach((square, i) => {
       struct.tiles[i].building = square;
-      struct.tiles[i].buildingName = buildingNames[square];
+      struct.tiles[i].buildingName = buildingNames[square.toString(16).toUpperCase()];
     });
   },
   'XTER': (data, struct) => {
@@ -152,14 +160,15 @@ sc2kparser.segmentHandlers = {
         let slope = square & 0x0F;
         let wetness = (square & 0xF0) >> 4;
         terrain.slope = xterSlopeMap[slope];
-        terrain.wetness = wetness;
+        terrain.waterlevel = waterLevels[wetness];
       } else if(square === 0x3E) {
         terrain.slope = xterSlopeMap[0];
-        terrain.waterfall = true;
+        terrain.waterlevel = waterLevels[0x4];
       } else if(square >= 0x40) {
         let surfaceWater = square & 0x0F;
         terrain.slope = xterSlopeMap[0];
         terrain.surfaceWater = xterWaterMap[surfaceWater];
+        terrain.waterlevel = waterLevels[0x3];
       }
       struct.tiles[i].terrain = terrain;
     });
