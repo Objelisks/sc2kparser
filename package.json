@@ -1,6 +1,6 @@
 {
   "name": "sc2kparser",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "SimCity 2000 save file parser",
   "main": "sc2kparser.js",
   "scripts": {
