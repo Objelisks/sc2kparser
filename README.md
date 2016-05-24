@@ -7,29 +7,44 @@ Output
 ======
 
 After the file is parsed, the parser returns a map of coordinates to tile info objects.
+See comments and save file documentation for more information about what each property is.
 
 The struct looks like:
 ```
 {
   tiles: [
     {
-      x: 4,
-      y: 6,
-      
+      alt: 50,
+      building: 0,
+      conductive: false,
+      piped: false,
+      powersupplied: false,
+      saltwater: false,
+      terrain: {
+        slope: [0,0,0,0],
+        waterLevel: 0
+      },
+      underground: {
+        slope: [0,0,0,0],
+        subway: true
+      },
+      water: false,
+      watercover: false,
+      watersupplied: false,
+      zone: {
+        bottomLeft: false,
+        bottomRight: false,
+        topLeft: false,
+        topRight: false,
+        type: 0
+      }
     }
   ],
-  meta: {
-    founded: 34,
-    money: 1000,
-    population: 5943
-  }
-}
-```
-
-The tile info objects look like:
-```
-{
-  cool: stufff
+  cityName: "Cool City",
+  daysElapsed: 0,
+  founded: 34,
+  money: 0,
+  population: 255
 }
 ```
 
