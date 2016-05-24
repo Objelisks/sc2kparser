@@ -177,20 +177,22 @@ sc2kparser.segmentHandlers = {
     let view = new Uint8Array(data);
     view.forEach((square, i) => {
       let underground = {};
-      if(square < 0x20) {
+      if(square < 0x1E) {
         let slope = square & 0x0F;
         underground.slope = xterSlopeMap[slope];
         if((square & 0xF0) === 0x00) {
           underground.subway = true;
-        } else if((square & 0xF0) === 0x10 && square < 0x1F) {
+        } else if(((square & 0xF0) === 0x10) && (square < 0x1F)) {
           underground.pipes = true;
         }
-      } else if(square === 0x1F || square === 0x20) {
+      } else if((square === 0x1F) || (square === 0x20)) {
         underground.subway = true;
         underground.pipes = true;
+        underground.slope = xterSlopeMap[0x0];
         underground.subwayLeftRight = square === 0x1F;
       } else if(square === 0x23) {
-        underground.subwayStation = true;
+        underground.station = true;
+        underground.slope = xterSlopeMap[0x0];
       }
       struct.tiles[i].underground = underground;
     });
@@ -200,9 +202,9 @@ sc2kparser.segmentHandlers = {
     view.forEach((square, i) => {
       let zone = {};
       zone.topLeft = (square & 0x80) !== 0;
-      zone.topRight = (square & 0x40) !== 0;
-      zone.bottomLeft = (square & 0x20) !== 0;
-      zone.bottomRight = (square & 0x10) !== 0;
+      zone.topRight = (square & 0x10) !== 0;
+      zone.bottomLeft = (square & 0x40) !== 0;
+      zone.bottomRight = (square & 0x20) !== 0;
       zone.type = square & 0x0F;
       struct.tiles[i].zone = zone;
     });
@@ -222,17 +224,19 @@ sc2kparser.segmentHandlers = {
     let labels = [];
     for(let i=0; i<256; i++) {
       let labelPos = i*25;
-      let labelLength = view[labelPos];
+      let labelLength = Math.max(0, Math.min(view[labelPos], 24));
       let labelData = view.subarray(labelPos+1, labelPos+1+labelLength);
       labels[i] = Array.prototype.map.call(labelData, x => String.fromCharCode(x)).join('');
     }
+    struct.labels = labels;
   },
   'MISC': (data, struct) => {
-    let view = new DataView(data, data.byteOffset, data.byteLength);
-    struct.founded = view.getUint32(3*4);
-    struct.daysElapsed = view.getUint32(4*4);
-    struct.money = view.getUint32(5*4);
-    struct.population = view.getUint32(20*4);
+    let view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+    struct.first = view.getInt32(0);
+    struct.founded = view.getInt32(3*4);
+    struct.daysElapsed = view.getInt32(4*4);
+    struct.money = view.getInt32(5*4);
+    struct.population = view.getInt32(20*4);
     // TODO: classify rest of misc data
   }
   // TODO: XMIC, XTHG, XGRP, XPLC, XFIR, XPOP, XROG, XPLT, XVAL, XCRM, XTRF
