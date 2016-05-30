@@ -3,6 +3,13 @@ SC2kParser.js
 
 This is a module that parses SimCity 2000 save files (\*.SC2)
 
+Install
+=======
+
+```
+npm install sc2kparser
+```
+
 Output
 ======
 
